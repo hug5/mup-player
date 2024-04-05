@@ -33,13 +33,13 @@ Kb Shortcuts
   Refer to MPV kb shortcuts
 
 PLAY OPTIONS
-  --fzy | --fuzzy   Fuzzy search; use with -d/-f options
+  --fzy | --fuzzy   Fuzzy search; use with -d/-f flags
   --all             Play everything in current/subdirectories
   --here            Play in current folder (default)
   --playlist        Load m3u playlist(s)
 
 FLAG OPTIONS
-  -s                Shuffle list
+  -s                Shuffle song list
   -f                Fuzzy select song files (default)
   -d                Fuzzy select directories
   -h                Display this help
@@ -87,12 +87,7 @@ function _check_options() {
     esac
 
     # Remove all --xxx flags because it seems to interfere with regular single dash flags;
-    # echo $OPTION
-    # echo "$FLAGS"
     FLAGS=$(echo "$FLAGS" | sed 's/--.* //g')
-    # FLAGS=${FLAGS//"--.*"/} # This doesn't seem to work
-    # echo "$FLAGS"
-    # exit
 
 }
 
@@ -109,15 +104,14 @@ function _check_flags() {
             SEARCH_TYPE="d"
             ;;
           f)
-            SEARCH_TYPE="f"               # This is default
+            SEARCH_TYPE="f"
             ;;
           h)
             _show_help
             ;;
 
-          *)                              # If unknown (any other) option:
-            #echo "Error: Unknown option."
-            #exit_abnormal
+          *)                   # If unknown (any other) option:
+             _show_help
             ;;
         esac
     done
@@ -155,7 +149,7 @@ function _mpv_fzyd() {
         # NEW_FILES=$(fdfind -t f $AUDIO_TYPE --full-path "$line" | sed -e 's/.*/\"&\"/')
         NEW_FILES=$(fdfind -t f $AUDIO_TYPE . "./$line" | sed -e 's/.*/\"&\"/')
           # AUDIO_TYPE won't work if quotes;
-          # See note below why I changed the syntax from --full-path to . "./$line"
+          # See note why I changed the syntax from --full-path to . "./$line"
 
         ALL_FILES+="${NEW_FILES} "
     done < <(printf '%s\n' "$DIR_SELECTED")
@@ -170,7 +164,7 @@ function _mpv_all() {
 
 function _mpv_here() {
     ALL_FILES=$(fdfind -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
-    # This puts everything on one line?? But still able to count?
+
 }
 
 function _mpv_playlist() {
@@ -188,19 +182,13 @@ function _mpv_playlist() {
     fi
 
     while IFS= read -r line; do
-        # ALL_FILES+=$(echo "$lines" | sed -e 's/.*/\"&\" /')
-        # combines lines and create ""; so add extra space between songs; don't want: "song1""song2"
         NEW_FILES=$(echo "$line" | sed -e 's/.*/\"&\"/')
         NEW_FILES+=$'\n' # add new line character
           # Not sure why I have to add a newline in this case;
         ALL_FILES+="${NEW_FILES}"
     done < <(while IFS= read -r list; do
             cat "$list"
-            # printf '%s\n' "$play_list"
-            #echo "$play_list"
         done < <(printf '%s\n' "$PLAYLIST"))
-
-
 
     # Remove the last blank line; either of these seem to work;
     ALL_FILES=$(echo "$ALL_FILES" | grep .)
@@ -262,14 +250,12 @@ elif [[ $OPTION == "playlist" ]]; then
 
 fi
 
-
-
 # After accumulating song files, play them:
 _hmp_play
 
+# Syntax:
 # hmp --fzy [-f|-d] [-s]
 # hmp --all [-s]
 # hmp --here [-s]
 # hmp --playlist [-s]
-
 
