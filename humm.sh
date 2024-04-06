@@ -37,10 +37,10 @@ SYNTAX
   $ humm --playlist [-s]
 
 Kb Shortcuts
-  9/0 : volume-/volume+
-  [/] : speed-/speed+
-  </> : previous/next
-  left-arrow/right-arrow : backward/forward
+  9 / 0 : volume- / volume+
+  [ / ] : speed- / speed+
+  < / > : previous / next
+  left/right : backward / forward
   * refer also to MPV kb shortcuts
 
 PLAY OPTIONS
@@ -53,7 +53,7 @@ FLAG OPTIONS
   -s                Shuffle song list
   -f                Fuzzy select song files (default)
   -d                Fuzzy select directories
-  --help | -h       Display this help
+  -h | --help       Display this help
 
 EXAMPLES
   $ humm --here        Play current folder (default).
@@ -264,10 +264,3 @@ fi
 
 # After accumulating song files, play them:
 _humm_play
-
-# Syntax:
-# humm --fzy [-f|-d] [-s]
-# humm --all [-s]
-# humm --here [-s]
-# humm --playlist [-s]
-

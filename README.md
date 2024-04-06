@@ -21,10 +21,10 @@ $ humm --playlist [-s]
 ```
 #### Kb Shortcuts
 ```
-9/0 : volume-/volume+
-[/] : speed-/speed+
-</> : previous/next
-left-arrow/right-arrow : backward/forward
+9 / 0 : volume- / volume+
+[ / ] : speed- / speed+
+< / > : previous / next
+left / right : backward / forward
 * refer also to MPV kb shortcuts
 ```
 -------------------------------------------------
