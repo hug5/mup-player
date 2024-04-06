@@ -1,49 +1,54 @@
-# hmp.sh
+# humm.sh
 
-## hmp terminal music player
+## humm terminal music player
 
 Play music files in your terminal with mpv.
 
 -------------------------------------------------
 
-#### REQUIREMENTS:
+#### REQUIREMENTS
   - mpv player
-  - fzy search  
+  - fzy search
   
-
+  
 #### SYNTAX
 ```
-$ hmp <OPTION> [flag]  
-$ hmp --fzy [-f|-d] [-s]  
-$ hmp --all [-s]  
-$ hmp --here [-s]  
-$ hmp --playlist [-s]  
-````
-
+$ humm <OPTION> [flag]  
+$ humm --fuzzy [-f|-d] [-s]  
+$ humm --all [-s]  
+$ humm --here [-s]  
+$ humm --playlist [-s]  
+```
+#### Kb Shortcuts
+```
+9/0 : volume-/volume+
+[/] : speed-/speed+
+</> : previous/next
+left-arrow/right-arrow : backward/forward
+* refer also to MPV kb shortcuts
+```
 -------------------------------------------------
 
 #### PLAY OPTIONS
 ```
---fzy / --fuzzy    Fuzzy search; use with -d/-f options       
---all              Play everything in current/subdirectories  
---here             Play in current folder (default)           
---playlist         Load m3u playlist(s)                       
+--fuzzy           Fuzzy search; use with -d/-f options       
+--all             Play everything in current/subdirectories  
+--here            Play in current folder (default)           
+--playlist        Load m3u playlist(s)                       
 ```
 
 #### FLAG OPTIONS
 ```
--s                 Shuffle list                      
--f                 Fuzzy select song files (default) 
--d                 Fuzzy select directories          
--h                 Display this help                 
+-s                Shuffle list                      
+-f                Fuzzy select song files (default) 
+-d                Fuzzy select directories          
+-h | --help       Display this help                 
 ```
 
 #### EXAMPLES
 ```
-$ hmp -h            Show help
-$ hmp --here        Play current folder (default).
-$ hmp --here -s     Play current folder; shuffle songs.
-$ hmp --all         Play everything in/under current directory.
-$ hmp --fzy         Fuzzy search songs.
-$ hmp --fzy -ds     Fuzzy search directories; shuffle.
+$ humm --here        Play current folder (default).
+$ humm --here -s     Play current folder; shuffle songs.
+$ humm --fuzzy -f    Fuzzy search songs.
+$ humm --fuzzy -ds   Fuzzy search directories; shuffle.
 ```

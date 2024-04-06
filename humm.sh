@@ -24,16 +24,27 @@ FLAGS=''
 
 function _show_help() {
 cat << EOF
-hmp terminal mpv music player
+humm terminal mpv music player
 
 SYNOPSIS
   Play music files with mpv in your terminal
 
+SYNTAX
+  $ humm <OPTION> [flag]
+  $ humm --fuzzy [-f|-d] [-s]
+  $ humm --all [-s]
+  $ humm --here [-s]
+  $ humm --playlist [-s]
+
 Kb Shortcuts
-  Refer to MPV kb shortcuts
+  9/0 : volume-/volume+
+  [/] : speed-/speed+
+  </> : previous/next
+  left-arrow/right-arrow : backward/forward
+  * refer also to MPV kb shortcuts
 
 PLAY OPTIONS
-  --fzy | --fuzzy   Fuzzy search; use with -d/-f flags
+  --fuzzy           Fuzzy search; use with -d/-f flags
   --all             Play everything in current/subdirectories
   --here            Play in current folder (default)
   --playlist        Load m3u playlist(s)
@@ -42,15 +53,13 @@ FLAG OPTIONS
   -s                Shuffle song list
   -f                Fuzzy select song files (default)
   -d                Fuzzy select directories
-  -h                Display this help
+  --help | -h       Display this help
 
 EXAMPLES
-  $ hmp -h           Show help.
-  $ hmp --here       Play current folder (default).
-  $ hmp --here -s    Play current folder; shuffle songs.
-  $ hmp --all        Play everything in/under current directory.
-  $ hmp --fzy        Fuzzy search songs.
-  $ hmp --fzy -ds    Fuzzy search directories; shuffle.
+  $ humm --here        Play current folder (default).
+  $ humm --here -s     Play current folder; shuffle songs.
+  $ humm --fuzzy -f    Fuzzy search songs.
+  $ humm --fuzzy -ds   Fuzzy search directories; shuffle.
 
 EOF
 exit 0;
@@ -58,36 +67,38 @@ exit 0;
 
 function _check_options() {
     # This is a bit of a hack
+    # --xxx option must be the first option;
     local STR="$*"
 
     case $STR in
 
-      *"--fzy"*)
+      "--fuzzy "* | "--fuzzy")
           OPTION="fuzzy"
           ;;
 
-      *"--fuzzy"*)
-          OPTION="fuzzy"
-          ;;
-
-      *"--all"*)
+      "--all "* | "--all")
           OPTION="all"
           ;;
 
-      *"--playlist"*)
+      "--playlist "* | "--playlist")
           OPTION="playlist"
           ;;
 
-      *"--here"*)
+      "--here "* | "--here" | "")
           OPTION="here"
           ;;
-      *)
-          OPTION="here"
+
+      # If any other, then show help
+      "--"* | *)
+          _show_help
           ;;
+
     esac
 
     # Remove all --xxx flags because it seems to interfere with regular single dash flags;
-    FLAGS=$(echo "$FLAGS" | sed 's/--.* //g')
+    FLAGS=$(echo "$FLAGS" | sed 's/--[a-z0-9 ]*//g')
+    # [a-z ] : a-z or space; do this to remove --all, --here, etc;
+    # But we don't want to remove the -s in, --here -s;
 
 }
 
@@ -118,7 +129,7 @@ function _check_flags() {
 
 }
 
-function _mpv_fzy() {
+function _humm_fzy() {
 
     ALL_FILES=$(fdfind -t f $AUDIO_TYPE | fzf -m $FARG | sed -e 's/.*/\"&\"/')
       # AUDIO_TYPE won't work if quotes;
@@ -131,7 +142,7 @@ function _mpv_fzy() {
 
 }
 
-function _mpv_fzyd() {
+function _humm_fzyd() {
     local DIR_SELECTED
     DIR_SELECTED=$(fdfind -t d -d 1 --full-path "."| fzf -m $FARG)
       # -t d : type directory;
@@ -156,18 +167,17 @@ function _mpv_fzyd() {
 
 }
 
-function _mpv_all() {
+function _humm_all() {
     ALL_FILES=$(fdfind -t f $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
-
 
 }
 
-function _mpv_here() {
+function _humm_here() {
     ALL_FILES=$(fdfind -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
 
 }
 
-function _mpv_playlist() {
+function _humm_playlist() {
 
     local PLAYLIST
     local NEW_FILES=''
@@ -196,7 +206,7 @@ function _mpv_playlist() {
 }
 
 
-function _hmp_play() {
+function _humm_play() {
 
     if [[ -z "$ALL_FILES" || "$ALL_FILES" == ' '  ]]; then
         echo "No music files found."
@@ -225,37 +235,39 @@ FLAGS="$*"
 # _check_options "$*"
 _check_options "$FLAGS"
 
+# echo $OPTION; exit
+
 # Check flags: check for -d and -s
 # _check_flags "$@"
 _check_flags "$FLAGS"
 
 
 if [[ $OPTION == "all" ]]; then
-  _mpv_all
+  _humm_all
 
 elif [[ $OPTION == "here" ]]; then
-  _mpv_here
+  _humm_here
 
 elif [[ $OPTION == "fuzzy" ]]; then
   # If file, then run file function;
   if [[ "$SEARCH_TYPE" == "f" ]]; then
-      _mpv_fzy
+      _humm_fzy
   # if -d, directory, then run directory function;
   else
-      _mpv_fzyd
+      _humm_fzyd
   fi
 
 elif [[ $OPTION == "playlist" ]]; then
-  _mpv_playlist
+  _humm_playlist
 
 fi
 
 # After accumulating song files, play them:
-_hmp_play
+_humm_play
 
 # Syntax:
-# hmp --fzy [-f|-d] [-s]
-# hmp --all [-s]
-# hmp --here [-s]
-# hmp --playlist [-s]
+# humm --fzy [-f|-d] [-s]
+# humm --all [-s]
+# humm --here [-s]
+# humm --playlist [-s]
 
