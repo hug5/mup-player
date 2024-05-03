@@ -10,15 +10,20 @@
 VOL_LEVEL=60
 AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
 MARG="--audio-display=no --volume=$VOL_LEVEL --loop-playlist --speed=1.0 --af=rubberband=pitch-scale=1.0:pitch=quality:smoothing=on,scaletempo"
-# FARG=''
-# FARG="--prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%"
-FARG="--prompt=: --header=————————————————————————————————"
 
-SHUFFLE=false    # Shuffle songs: true/false
+# STYLE="--prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%"
+# --border --margin=1 --prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%:noborder:wrap
+
+  # with preview playlist;
+STYLE="--border --prompt=: --header=————————————————————————————————"
+  # No preview of playlist
+OPTION='--preview-window=right:40%:wrap'
+
+SHUFFLE=true    # Shuffle songs: true/false
 SEARCH_TYPE="f"  # f=file; d=directory; file is default;
 COUNT=0
 ALL_FILES=''
-OPTION=''
+PTYPE=''
 FLAGS=''
 
 
@@ -31,10 +36,10 @@ SYNOPSIS
 
 SYNTAX
   $ humm <OPTION> [flag]
-  $ humm --fuzzy [-f|-d] [-s]
-  $ humm --all [-s]
-  $ humm --here [-s]
-  $ humm --playlist [-s]
+  $ humm --fuzzy [-f|-d] [-s|-n]
+  $ humm --all [-s|-n]
+  $ humm --here [-s|-n]
+  $ humm --playlist [-s|-n]
 
 Kb Shortcuts
   9 / 0 : volume- / volume+
@@ -50,7 +55,8 @@ PLAY OPTIONS
   --playlist        Load m3u playlist(s)
 
 FLAG OPTIONS
-  -s                Shuffle song list
+  -s                Shuffle song list (default)
+  -n                Don't shuffle song list
   -f                Fuzzy select song files (default)
   -d                Fuzzy select directories
   -h | --help       Display this help
@@ -65,7 +71,7 @@ EOF
 exit 0;
 }
 
-function _check_options() {
+function _check_playtype() {
     # This is a bit of a hack
     # --xxx option must be the first option;
     local STR="$*"
@@ -73,19 +79,19 @@ function _check_options() {
     case $STR in
 
       "--fuzzy "* | "--fuzzy")
-          OPTION="fuzzy"
+          PTYPE="fuzzy"
           ;;
 
       "--all "* | "--all")
-          OPTION="all"
+          PTYPE="all"
           ;;
 
       "--playlist "* | "--playlist")
-          OPTION="playlist"
+          PTYPE="playlist"
           ;;
 
       "--here "* | "--here" | "")
-          OPTION="here"
+          PTYPE="here"
           ;;
 
       # If any other, then show help
@@ -105,11 +111,15 @@ function _check_options() {
 function _check_flags() {
     local OPTIND                          # Make this a local; the index of the next argument index, not current;
 
-    while getopts ":dsfh" OPTIONS; do       # Loop: Get the next option;
 
-        case "$OPTIONS" in
+    while getopts ":dsnfh" FLAGS; do       # Loop: Get the next option;
+
+        case "$FLAGS" in
           s)
             SHUFFLE=true
+            ;;
+          n)
+            SHUFFLE=false
             ;;
           d)
             SEARCH_TYPE="d"
@@ -120,7 +130,6 @@ function _check_flags() {
           h)
             _show_help
             ;;
-
           *)                   # If unknown (any other) option:
              _show_help
             ;;
@@ -131,7 +140,7 @@ function _check_flags() {
 
 function _humm_fzy() {
 
-    ALL_FILES=$(fdfind -t f $AUDIO_TYPE | fzf -m $FARG | sed -e 's/.*/\"&\"/')
+    ALL_FILES=$(fdfind -t f $AUDIO_TYPE | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
       # AUDIO_TYPE won't work if quotes;
       # -t f : type files;
 
@@ -144,7 +153,7 @@ function _humm_fzy() {
 
 function _humm_fzyd() {
     local DIR_SELECTED
-    DIR_SELECTED=$(fdfind -t d -d 1 --full-path "."| fzf -m $FARG)
+    DIR_SELECTED=$(fdfind -t d -d 1 --full-path "."| fzf -m $STYLE)
       # -t d : type directory;
       # -d 1 : depth of 1 directory; don't go recursive into subfolders;
 
@@ -181,10 +190,22 @@ function _humm_playlist() {
 
     local PLAYLIST
     local NEW_FILES=''
-    # PLAYLIST=$(fdfind -t f -e m3u | fzf $FARG | sed -e 's/.*/\"&\"/')
+    # PLAYLIST=$(fdfind -t f -e m3u | fzf $STYLE | sed -e 's/.*/\"&\"/')
       # Can't cat a playlist when it's quoted in a script
 
-    PLAYLIST=$(fdfind -t f -e m3u | fzf -m $FARG)
+    local ISBat=''
+    local ISBatCAT=''
+    ISBAT=$(which bat)
+    ISBATCAT=$(which batcat)
+      # Check if bat/batcat exists; if so, use bat; else use head for preview;
+    if [[ -n $ISBAT ]]; then
+        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='bat --color=always --line-range=:100 {}')
+    elif [[ -n $ISBATCAT ]]; then
+        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='batcat --color=always --line-range=:100 {}')
+    else
+        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='head -n100 {}' )
+    fi
+
 
     if [[ -z "$PLAYLIST" ]]; then
         echo "Goodbye."
@@ -216,10 +237,10 @@ function _humm_play() {
     COUNT=$(echo "$ALL_FILES" | wc -l)
 
     if [[ "$SHUFFLE" == true ]]; then
-        echo "Play $OPTION. $COUNT songs. Shuffle On."
+        echo "Play $PTYPE. $COUNT songs. Shuffle On."
         echo "$ALL_FILES" | xargs mpv --shuffle $MARG
     else
-        echo "Play $OPTION. $COUNT songs. Shuffle Off."
+        echo "Play $PTYPE. $COUNT songs. Shuffle Off."
         echo "$ALL_FILES" | xargs mpv $MARG
         # Errors if quote $MARG
     fi
@@ -232,8 +253,8 @@ function _humm_play() {
 FLAGS="$*"
 
 # Check for --flags
-# _check_options "$*"
-_check_options "$FLAGS"
+# _check_playtype "$*"
+_check_playtype "$FLAGS"
 
 # echo $OPTION; exit
 
@@ -242,13 +263,13 @@ _check_options "$FLAGS"
 _check_flags "$FLAGS"
 
 
-if [[ $OPTION == "all" ]]; then
+if [[ $PTYPE == "all" ]]; then
   _humm_all
 
-elif [[ $OPTION == "here" ]]; then
+elif [[ $PTYPE == "here" ]]; then
   _humm_here
 
-elif [[ $OPTION == "fuzzy" ]]; then
+elif [[ $PTYPE == "fuzzy" ]]; then
   # If file, then run file function;
   if [[ "$SEARCH_TYPE" == "f" ]]; then
       _humm_fzy
@@ -257,7 +278,7 @@ elif [[ $OPTION == "fuzzy" ]]; then
       _humm_fzyd
   fi
 
-elif [[ $OPTION == "playlist" ]]; then
+elif [[ $PTYPE == "playlist" ]]; then
   _humm_playlist
 
 fi
