@@ -111,21 +111,29 @@ function _check_playtype() {
 function _check_flags() {
     local OPTIND                          # Make this a local; the index of the next argument index, not current;
 
+echo $FLAGS
 
-    while getopts ":dsnfh" FLAGS; do       # Loop: Get the next option;
+    while getopts ":snfhd" FLAGS; do       # Loop: Get the next option;
 
         case "$FLAGS" in
           s)
             SHUFFLE=true
+            echo 1
             ;;
           n)
             SHUFFLE=false
+            echo $SHUFFLE
+            echo 2
             ;;
           d)
             SEARCH_TYPE="d"
+            # depth="${OPTARG}"
+            echo 3
+            echo $SEARCH_TYPE
             ;;
           f)
             SEARCH_TYPE="f"
+            echo 4
             ;;
           h)
             _show_help
@@ -136,7 +144,10 @@ function _check_flags() {
         esac
     done
 
+    echo "done"
+    exit
 }
+
 
 function _humm_fzy() {
 
