@@ -6,6 +6,8 @@
 # Combined the 2 functions: files and directories;
 # // 2024-04-03 : Put all functions here
 
+fd='fdfind'
+
 
 VOL_LEVEL=60
 AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
@@ -27,6 +29,7 @@ PTYPE=''
 FLAGS=''
 
 
+
 function _show_help() {
 cat << EOF
 humm terminal mpv music player
@@ -36,7 +39,7 @@ SYNOPSIS
 
 SYNTAX
   $ humm <OPTION> [flag]
-  $ humm --fuzzy [-f|-d] [-s|-n]
+  $ humm --fuzzy [-f|-dN] [-s|-n]
   $ humm --all [-s|-n]
   $ humm --here [-s|-n]
   $ humm --playlist [-s|-n]
@@ -58,14 +61,14 @@ FLAG OPTIONS
   -s                Shuffle song list (default)
   -n                Don't shuffle song list
   -f                Fuzzy select song files (default)
-  -d                Fuzzy select directories
+  -dN               Fuzzy select directories; N=depth
   -h | --help       Display this help
 
 EXAMPLES
-  $ humm --here        Play current folder (default).
-  $ humm --here -s     Play current folder; shuffle songs.
-  $ humm --fuzzy -f    Fuzzy search songs.
-  $ humm --fuzzy -ds   Fuzzy search directories; shuffle.
+  $ humm --here          Play current folder (default).
+  $ humm --here -s       Play current folder; shuffle songs.
+  $ humm --fuzzy -f      Fuzzy search songs.
+  $ humm --fuzzy -d1 -n  Fuzzy search directories; no shuffle.
 
 EOF
 exit 0;
@@ -109,49 +112,51 @@ function _check_playtype() {
 }
 
 function _check_flags() {
-    local OPTIND                          # Make this a local; the index of the next argument index, not current;
+    local OPTIND
+      # Make this a local; the index of the next
+      # argument index, not current;
+    local LOPTION
+      # LOPTION variable will be used in the while loop
+      # to hold the flags found that was passed in;
 
-echo $FLAGS
+    while getopts ":snd:fh" LOPTION; do  # Loop: Get the next option;
 
-    while getopts ":snfhd" FLAGS; do       # Loop: Get the next option;
-
-        case "$FLAGS" in
+        case "$LOPTION" in
           s)
             SHUFFLE=true
-            echo 1
             ;;
           n)
             SHUFFLE=false
-            echo $SHUFFLE
-            echo 2
             ;;
           d)
             SEARCH_TYPE="d"
-            # depth="${OPTARG}"
-            echo 3
-            echo $SEARCH_TYPE
+            DEPTH="${OPTARG}"
+
+            # check if > 0; or if non integer;
+            # If not > 0, then set 1
+            if [[ "$DEPTH" -le 0 ]]; then
+                DEPTH=1
+            fi
             ;;
           f)
             SEARCH_TYPE="f"
-            echo 4
             ;;
           h)
             _show_help
             ;;
           *)                   # If unknown (any other) option:
+             echo "Unknown Option."
              _show_help
             ;;
         esac
     done
 
-    echo "done"
-    exit
 }
 
 
 function _humm_fzy() {
 
-    ALL_FILES=$(fdfind -t f $AUDIO_TYPE | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
+    ALL_FILES=$($fd -t f $AUDIO_TYPE | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
       # AUDIO_TYPE won't work if quotes;
       # -t f : type files;
 
@@ -164,9 +169,14 @@ function _humm_fzy() {
 
 function _humm_fzyd() {
     local DIR_SELECTED
-    DIR_SELECTED=$(fdfind -t d -d 1 --full-path "."| fzf -m $STYLE)
+    # DIR_SELECTED=$($fd -t d -d $DEPTH --full-path "."| fzf -m $STYLE)
       # -t d : type directory;
-      # -d 1 : depth of 1 directory; don't go recursive into subfolders;
+      # -d $DEPTH : depth of directory;
+    DIR_SELECTED=$($fd -td -d $DEPTH --full-path "." | fzf -m $STYLE "$OPTION" --preview="$fd  . -tf -d99 {}")
+      # Added preview option; preview the files in the directory;
+      # Going depth 99; the parent folder may have no music files;
+      # Now if I can remove the directory and show the file name only;
+      # Getting error when using $fd inside single quote
 
     # Check for empty string
     if [[ -z "$DIR_SELECTED" ]]; then
@@ -177,8 +187,8 @@ function _humm_fzyd() {
     local NEW_FILES=''
     while IFS= read -r line; do
 
-        # NEW_FILES=$(fdfind -t f $AUDIO_TYPE --full-path "$line" | sed -e 's/.*/\"&\"/')
-        NEW_FILES=$(fdfind -t f $AUDIO_TYPE . "./$line" | sed -e 's/.*/\"&\"/')
+        # NEW_FILES=$($fd -t f $AUDIO_TYPE --full-path "$line" | sed -e 's/.*/\"&\"/')
+        NEW_FILES=$($fd -t f $AUDIO_TYPE . "./$line" | sed -e 's/.*/\"&\"/')
           # AUDIO_TYPE won't work if quotes;
           # See note why I changed the syntax from --full-path to . "./$line"
 
@@ -188,12 +198,12 @@ function _humm_fzyd() {
 }
 
 function _humm_all() {
-    ALL_FILES=$(fdfind -t f $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
+    ALL_FILES=$($fd -t f $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
 
 }
 
 function _humm_here() {
-    ALL_FILES=$(fdfind -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
+    ALL_FILES=$($fd -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
 
 }
 
@@ -201,7 +211,7 @@ function _humm_playlist() {
 
     local PLAYLIST
     local NEW_FILES=''
-    # PLAYLIST=$(fdfind -t f -e m3u | fzf $STYLE | sed -e 's/.*/\"&\"/')
+    # PLAYLIST=$($fd -t f -e m3u | fzf $STYLE | sed -e 's/.*/\"&\"/')
       # Can't cat a playlist when it's quoted in a script
 
     local ISBat=''
@@ -210,11 +220,11 @@ function _humm_playlist() {
     ISBATCAT=$(which batcat)
       # Check if bat/batcat exists; if so, use bat; else use head for preview;
     if [[ -n $ISBAT ]]; then
-        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='bat --color=always --line-range=:100 {}')
+        PLAYLIST=$($fd -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='bat --color=always --line-range=:100 {}')
     elif [[ -n $ISBATCAT ]]; then
-        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='batcat --color=always --line-range=:100 {}')
+        PLAYLIST=$($fd -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='batcat --color=always --line-range=:100 {}')
     else
-        PLAYLIST=$(fdfind -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='head -n100 {}' )
+        PLAYLIST=$($fd -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='head -n100 {}' )
     fi
 
 
@@ -265,13 +275,14 @@ FLAGS="$*"
 
 # Check for --flags
 # _check_playtype "$*"
+
 _check_playtype "$FLAGS"
 
-# echo $OPTION; exit
-
-# Check flags: check for -d and -s
-# _check_flags "$@"
-_check_flags "$FLAGS"
+_check_flags $FLAGS
+  # In this instance, passing $FLAGS in quotes doesn't work
+  # Needs to be unquoted to get each variable treated distinctly;
+  # Remember that I set the FLAGS variable myself because I'm
+  # Using both --long and -s flag types and parsing string myself;
 
 
 if [[ $PTYPE == "all" ]]; then
