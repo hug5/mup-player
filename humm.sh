@@ -6,6 +6,13 @@
 # Combined the 2 functions: files and directories;
 # // 2024-04-03 : Put all functions here
 
+#---------------------------------------------------------
+
+# This script should not be sourced;
+
+
+#---------------------------------------------------------
+
 fd='fdfind'
 
 VOL_LEVEL=60
@@ -26,6 +33,7 @@ COUNT=0
 ALL_FILES=''
 PTYPE=''
 FLAGS=''
+DEPTH=1
 
 
 
@@ -38,7 +46,7 @@ SYNOPSIS
 
 SYNTAX
   $ humm <OPTION> [flag]
-  $ humm --fuzzy [-f|-dN] [-s|-n]
+  $ humm --fuzzy [-f|-d] [-N<depth>] [-s|-n]
   $ humm --all [-s|-n]
   $ humm --here [-s|-n]
   $ humm --playlist [-s|-n]
@@ -51,23 +59,25 @@ Kb Shortcuts
   * refer also to MPV kb shortcuts
 
 PLAY OPTIONS
-  --fuzzy           Fuzzy search; use with -d/-f flags
-  --all             Play everything in current/subdirectories
-  --here            Play in current folder (default)
-  --playlist        Load m3u playlist(s)
+  --fuzzy           Fuzzy search; use with -d/-f flags.
+  --all             Play everything in current/subdirectories.
+  --here            Play in current folder (default).
+  --playlist        Load m3u playlist(s).
 
 FLAG OPTIONS
-  -s                Shuffle song list (default)
-  -n                Don't shuffle song list
-  -f                Fuzzy select song files (default)
-  -dN               Fuzzy select directories; N=depth
-  -h | --help       Display this help
+  -s                Shuffle song list (default).
+  -n                Don't shuffle song list.
+  -f                Fuzzy select song files (default).
+  -d                Fuzzy select directories.
+  -N<depth>         Fuzzy directory depth (default=1).
+  -h | --help       Display this help.
 
 EXAMPLES
   $ humm --here          Play current folder (default).
   $ humm --all -s        Play all; shuffle songs.
-  $ humm --fuzzy -f      Fuzzy search songs.
-  $ humm --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
+  $ humm --all -n        Play all; no shuffle songs.
+  $ humm --fuzzy -f      Fuzzy search by song files.
+  $ humm --fuzzy -dN2    Fuzzy search by directory; depth=2.
 
 EOF
 exit 0;
@@ -76,9 +86,10 @@ exit 0;
 function _check_playtype() {
     # This is a bit of a hack
     # --xxx option must be the first option;
-    local STR="$*"
+    # local STR="$*"
 
-    case $STR in
+    # case $STR in
+    case $FLAGS in
 
       "--fuzzy "* | "--fuzzy")
           PTYPE="fuzzy"
@@ -104,9 +115,11 @@ function _check_playtype() {
     esac
 
     # Remove all --xxx flags because it seems to interfere with regular single dash flags;
-    FLAGS=$(echo "$FLAGS" | sed 's/--[a-z0-9 ]*//g')
-    # [a-z ] : a-z or space; do this to remove --all, --here, etc;
-    # But we don't want to remove the -s in, --here -s;
+    # FLAGS=$(echo "$FLAGS" | sed 's/--[a-z0-9 ]*//g')
+      # [a-z ] : a-z or space; do this to remove --all, --here, etc;
+      # But we don't want to remove the -s in, --here -s;
+
+    # Note: This isn't necessary, actually, unless you want to remove multiple --xx flags; can just call "shift" command to shift over to next arguments, instead; so will just do that instead; multiple --xxx flags will just produce error;
 
 }
 
@@ -117,8 +130,10 @@ function _check_flags() {
     local LOPTION
       # LOPTION variable will be used in the while loop
       # to hold the flags found that was passed in;
+    local LDEPTH
+      # When --fuzzy, get directory DEPTH; default=1
 
-    while getopts ":d:snfh" LOPTION; do  # Loop: Get the next option;
+    while getopts ":dN:snfh" LOPTION; do  # Loop: Get the next option;
 
         case "$LOPTION" in
           s)
@@ -126,21 +141,19 @@ function _check_flags() {
             ;;
           n)
             SHUFFLE=false
-            echo "false"
-            exit
+            # exit
             ;;
+          N)
+            LDEPTH="${OPTARG}"
+
+            if [[ "$LDEPTH" -ge 2 ]]; then
+                 DEPTH=$LDEPTH
+            fi
+            # else DEPTH is default 1
+            ;;
+
           d)
             SEARCH_TYPE="d"
-            DEPTH="${OPTARG}"
-
-            # check if > 0; or if non integer;
-            # If not > 0, then set 1
-            if [[ "$DEPTH" -le 0 ]] || [[ -z "$DEPTH" ]]; then
-                DEPTH=1
-            fi
-            shift
-            shift
-
             ;;
           f)
             SEARCH_TYPE="f"
@@ -155,6 +168,10 @@ function _check_flags() {
         esac
     done
 
+    # echo $PTYPE
+    # echo $DEPTH
+    # echo $SEARCH_TYPE
+    # echo $SHUFFLE
 }
 
 
@@ -218,11 +235,19 @@ function _humm_playlist() {
     # PLAYLIST=$($fd -t f -e m3u | fzf $STYLE | sed -e 's/.*/\"&\"/')
       # Can't cat a playlist when it's quoted in a script
 
-    local ISBat=''
-    local ISBatCAT=''
-    ISBAT=$(which bat)
-    ISBATCAT=$(which batcat)
+    local ISBAT=''
+    local ISBATCAT=''
+    ISBAT=$(hash bat)
+    ISBATCAT=$(hash batcat)
       # Check if bat/batcat exists; if so, use bat; else use head for preview;
+      # LSP suggestion:
+      # https://www.shellcheck.net/wiki/SC2230
+      # For the path of a single, unaliased, external command,
+      # or to check whether this will just "run" in this shell:
+      # command -v <command>
+      # To check whether commands exist, without obtaining a reusable path:
+      # hash <command>
+
     if [[ -n $ISBAT ]]; then
         PLAYLIST=$($fd -t f -e m3u | fzf -m $STYLE "$OPTION" --preview='bat --color=always --line-range=:100 {}')
     elif [[ -n $ISBATCAT ]]; then
@@ -282,11 +307,24 @@ FLAGS="$*"
 
 _check_playtype "$FLAGS"
 
-_check_flags $FLAGS
+# echo "$FLAGS"
+# echo "$*"
+# shift
+# echo "$*"
+
+# echo "$FLAGS"
+# exit
+
+# _check_flags $FLAGS
   # In this instance, passing $FLAGS in quotes doesn't work
+  # The downside (or maybe upside) is that it will error if
+  # multiple --xxx flags;
   # Needs to be unquoted to get each variable treated distinctly;
   # Remember that I set the FLAGS variable myself because I'm
   # Using both --long and -s flag types and parsing string myself;
+
+shift
+_check_flags $*
 
 
 if [[ $PTYPE == "all" ]]; then
