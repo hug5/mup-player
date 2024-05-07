@@ -8,16 +8,16 @@ Play music files in your terminal with mpv.
 
 #### REQUIREMENTS
   - mpv player
-  - fzy search
+  - fzf search
   
   
 #### SYNTAX
 ```
-$ humm <OPTION> [flag]  
-$ humm --fuzzy [-f|-d] [-s]  
-$ humm --all [-s]  
-$ humm --here [-s]  
-$ humm --playlist [-s]  
+$ humm <OPTION> [flag]
+$ humm --fuzzy [-f|-dN] [-s|-n]
+$ humm --all [-s|-n]
+$ humm --here [-s|-n]
+$ humm --playlist [-s|-n]
 ```
 #### Kb Shortcuts
 ```
@@ -39,16 +39,17 @@ left / right : backward / forward
 
 #### FLAG OPTIONS
 ```
--s                Shuffle list                      
--f                Fuzzy select song files (default) 
--d                Fuzzy select directories          
--h | --help       Display this help                 
+-s                Shuffle song list (default)
+-n                Don't shuffle song list
+-f                Fuzzy select song files (default)
+-dN               Fuzzy select directories; N=depth
+-h | --help       Display this help              
 ```
 
 #### EXAMPLES
 ```
-$ humm --here        Play current folder (default).
-$ humm --here -s     Play current folder; shuffle songs.
-$ humm --fuzzy -f    Fuzzy search songs.
-$ humm --fuzzy -ds   Fuzzy search directories; shuffle.
+$ humm --here          Play current folder (default).
+$ humm --all -s        Play all; shuffle songs.
+$ humm --fuzzy -f      Fuzzy search songs.
+$ humm --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
 ```

@@ -8,7 +8,6 @@
 
 fd='fdfind'
 
-
 VOL_LEVEL=60
 AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
 MARG="--audio-display=no --volume=$VOL_LEVEL --loop-playlist --speed=1.0 --af=rubberband=pitch-scale=1.0:pitch=quality:smoothing=on,scaletempo"
@@ -66,9 +65,9 @@ FLAG OPTIONS
 
 EXAMPLES
   $ humm --here          Play current folder (default).
-  $ humm --here -s       Play current folder; shuffle songs.
+  $ humm --all -s        Play all; shuffle songs.
   $ humm --fuzzy -f      Fuzzy search songs.
-  $ humm --fuzzy -d1 -n  Fuzzy search directories; no shuffle.
+  $ humm --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
 
 EOF
 exit 0;
@@ -119,7 +118,7 @@ function _check_flags() {
       # LOPTION variable will be used in the while loop
       # to hold the flags found that was passed in;
 
-    while getopts ":snd:fh" LOPTION; do  # Loop: Get the next option;
+    while getopts ":d:snfh" LOPTION; do  # Loop: Get the next option;
 
         case "$LOPTION" in
           s)
@@ -127,6 +126,8 @@ function _check_flags() {
             ;;
           n)
             SHUFFLE=false
+            echo "false"
+            exit
             ;;
           d)
             SEARCH_TYPE="d"
@@ -134,9 +135,12 @@ function _check_flags() {
 
             # check if > 0; or if non integer;
             # If not > 0, then set 1
-            if [[ "$DEPTH" -le 0 ]]; then
+            if [[ "$DEPTH" -le 0 ]] || [[ -z "$DEPTH" ]]; then
                 DEPTH=1
             fi
+            shift
+            shift
+
             ;;
           f)
             SEARCH_TYPE="f"
