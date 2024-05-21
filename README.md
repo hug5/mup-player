@@ -14,10 +14,10 @@ Play music files in your terminal with mpv.
 #### SYNTAX
 ```
 $ mup <OPTION> [flag]
-$ mup --fuzzy [-f|-dN] [-s|-n]
-$ mup --all [-s|-n]
-$ mup --here [-s|-n]
-$ mup --playlist [-s|-n]
+$ mup --fuzzy | -F [-f|-dN] [-s|-n]
+$ mup --all | -A [-s|-n]
+$ mup --here | -H [-s|-n]
+$ mup --playlist | -P [-s|-n]
 ```
 #### Kb Shortcuts
 ```
@@ -29,12 +29,12 @@ left / right : backward / forward
 ```
 -------------------------------------------------
 
-#### PLAY OPTIONS
+#### PLAY COMMANDS
 ```
---fuzzy           Fuzzy search; use with -d/-f options       
---all             Play everything in current/subdirectories  
---here            Play in current folder (default)           
---playlist        Load m3u playlist(s)                       
+--fuzzy | F       Fuzzy search; use with -d/-f options       
+--all | A         Play everything in current/subdirectories  
+--here | H        Play in current folder (default)           
+--playlist | P    Load m3u playlist(s)                       
 ```
 
 #### FLAG OPTIONS
@@ -50,6 +50,8 @@ left / right : backward / forward
 ```
 $ mup --here          Play current folder (default).
 $ mup --all -s        Play all; shuffle songs.
+$ mup -An             Play all; no shuffle songs.
 $ mup --fuzzy -f      Fuzzy search songs.
-$ mup --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
+$ mup -FdN2           Fuzzy search by directory; depth=2.
+
 ```
