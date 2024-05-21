@@ -1,6 +1,6 @@
-# humm.sh
+# mup.sh
 
-## humm terminal music player
+## mup terminal music player
 
 Play music files in your terminal with mpv.
 
@@ -13,11 +13,11 @@ Play music files in your terminal with mpv.
   
 #### SYNTAX
 ```
-$ humm <OPTION> [flag]
-$ humm --fuzzy [-f|-dN] [-s|-n]
-$ humm --all [-s|-n]
-$ humm --here [-s|-n]
-$ humm --playlist [-s|-n]
+$ mup <OPTION> [flag]
+$ mup --fuzzy [-f|-dN] [-s|-n]
+$ mup --all [-s|-n]
+$ mup --here [-s|-n]
+$ mup --playlist [-s|-n]
 ```
 #### Kb Shortcuts
 ```
@@ -48,8 +48,8 @@ left / right : backward / forward
 
 #### EXAMPLES
 ```
-$ humm --here          Play current folder (default).
-$ humm --all -s        Play all; shuffle songs.
-$ humm --fuzzy -f      Fuzzy search songs.
-$ humm --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
+$ mup --here          Play current folder (default).
+$ mup --all -s        Play all; shuffle songs.
+$ mup --fuzzy -f      Fuzzy search songs.
+$ mup --fuzzy -d1 -n  Fuzzy search by directory; no shuffle.
 ```
