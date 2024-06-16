@@ -264,8 +264,8 @@ function _mup_playlist() {
 
     local ISBAT=''
     local ISBATCAT=''
-    ISBAT=$(hash bat)
-    ISBATCAT=$(hash batcat)
+    ISBAT=$(hash bat &>/dev/null)
+    ISBATCAT=$(hash batcat &>/dev/null)
       # Check if bat/batcat exists; if so, use bat; else use head for preview;
       # LSP suggestion:
       # https://www.shellcheck.net/wiki/SC2230
@@ -274,6 +274,7 @@ function _mup_playlist() {
       # command -v <command>
       # To check whether commands exist, without obtaining a reusable path:
       # hash <command>
+      # do &>/dev/null to silence any errors;
 
     if [[ -n $ISBAT ]]; then
         PLAYLIST=$($fd -t f -e m3u | fzf -m $STYLE "$PREV" --preview='bat --color=always --line-range=:100 {}')
