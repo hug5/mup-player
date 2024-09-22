@@ -31,9 +31,9 @@ left / right : backward / forward
 
 #### PLAY COMMANDS
 ```
---fuzzy | F       Fuzzy search; use with -d/-f options       
+--fuzzy | F       Fuzzy search; use with -d/-f options (default)        
 --all | A         Play everything in current/subdirectories  
---here | H        Play in current folder (default)           
+--here | H        Play in current folder         
 --playlist | P    Load m3u playlist(s)                       
 ```
 
@@ -48,10 +48,11 @@ left / right : backward / forward
 
 #### EXAMPLES
 ```
-$ mup --here          Play current folder (default).
+$ mup --fuzzy -f      Fuzzy search songs. (default)
+$ mup                 Same as --fuzzy -f 
+$ mup --here          Play current folder.
 $ mup --all -s        Play all; shuffle songs.
 $ mup -An             Play all; no shuffle songs.
-$ mup --fuzzy -f      Fuzzy search songs.
 $ mup -FdN2           Fuzzy search by directory; depth=2.
 
 ```

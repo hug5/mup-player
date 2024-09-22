@@ -13,31 +13,31 @@
 
 #---------------------------------------------------------
 
-fd='fdfind'
+declare fd='fdfind'
 
-VOL_LEVEL=60
-AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
-MARG="--audio-display=no --volume=$VOL_LEVEL --loop-playlist --speed=1.0 --af=rubberband=pitch-scale=1.0:pitch=quality:smoothing=on,scaletempo"
+declare -i VOL_LEVEL=60
+declare AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
+declare MARG="--audio-display=no --volume=$VOL_LEVEL --loop-playlist --speed=1.0 --af=rubberband=pitch-scale=1.0:pitch=quality:smoothing=on,scaletempo"
 
 # STYLE="--prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%"
 # --border --margin=1 --prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%:noborder:wrap
 
   # with preview playlist;
-STYLE="--border --prompt=: --header=————————————————————————————————"
+declare STYLE="--border --prompt=: --header=————————————————————————————————"
   # No preview of playlist
-PREV='--preview-window=right:40%:wrap'
+declare PREV='--preview-window=right:40%:wrap'
 
-SHUFFLE=true    # Shuffle songs: true/false
-SEARCH_TYPE="f"  # f=file; d=directory; file is default;
-COUNT=0
-PTYPE=''
-FLAGS=''
-DEPTH=1
+declare SHUFFLE=true      # Shuffle songs: true/false
+declare SEARCH_TYPE="f"   # f=file; d=directory; file is default;
+declare -i COUNT=0
+declare PTYPE=''
+declare FLAGS=''
+declare -i DEPTH=1
 declare -a ALL_FILES
 
 
 
-function _show_help() {
+function show_help() {
 cat << EOF
 mup terminal music player
 
@@ -60,9 +60,9 @@ Kb Shortcuts
   * refer also to MPV kb shortcuts
 
 PLAY COMMANDS
-  --fuzzy | -F      Fuzzy search; use with -d/-f flags.
+  --fuzzy | -F      Fuzzy search; use with -d/-f flags. (default)
   --all | -A        Play everything in current/subdirectories.
-  --here | -H       Play in current folder (default).
+  --here | -H       Play in current folder.
   --playlist | -P   Load m3u playlist(s).
 
 FLAG OPTIONS
@@ -74,17 +74,18 @@ FLAG OPTIONS
   -h | --help       Display this help.
 
 EXAMPLES
-  $ mup --here          Play current folder (default).
+  $ mup --fuzzy -f      Fuzzy search by song files. (default)
+  $ mup                 Same as --fuzzy -f
+  $ mup --here          Play current folder.
   $ mup --all -s        Play all; shuffle songs.
   $ mup -An             Play all; no shuffle songs.
-  $ mup --fuzzy -f      Fuzzy search by song files.
   $ mup -FdN2           Fuzzy search by directory; depth=2.
 
 EOF
 exit 0;
 }
 
-function _check_longflag_playtype() {
+function check_longflag_playtype() {
     # This is a bit of a hack
     # --xxx option must be the first option;
     # local STR="$*"
@@ -92,9 +93,6 @@ function _check_longflag_playtype() {
     # case $STR in
     case $FLAGS in
 
-      "--fuzzy "* | "--fuzzy")
-          PTYPE="fuzzy"
-          ;;
 
       "--all "* | "--all")
           PTYPE="all"
@@ -104,14 +102,21 @@ function _check_longflag_playtype() {
           PTYPE="playlist"
           ;;
 
-      "--here "* | "--here" | "")
+      # "--here "* | "--here" | "")
+      "--here "* | "--here")
           PTYPE="here"
+          ;;
+
+      # "--fuzzy "* | "--fuzzy")
+      # If blank, then default to --here
+      "--fuzzy "* | "--fuzzy" | "")
+          PTYPE="fuzzy"
           ;;
 
       # If any other long dash, then show help
       # "--"* | *)
       "--"*)
-          _show_help
+          show_help
           ;;
 
     esac
@@ -125,15 +130,15 @@ function _check_longflag_playtype() {
 
 }
 
-function _check_bad_longflag() {
+function check_bad_longflag() {
     # If long flag used, then error if repeat same with short flag;
     if [[ -n "$PTYPE" ]]; then
         echo "Bad Option.";
-        _show_help;
+        show_help;
     fi
 }
 
-function _check_shortflags() {
+function check_shortflags() {
     local OPTIND
       # Make this a local; the index of the next
       # argument index, not current;
@@ -148,19 +153,19 @@ function _check_shortflags() {
         case "$LOPTION" in
 
           F)
-            _check_bad_longflag
+            check_bad_longflag
             PTYPE="fuzzy"
             ;;
           A)
-            _check_bad_longflag
+            check_bad_longflag
             PTYPE="all"
             ;;
           H)
-            _check_bad_longflag
+            check_bad_longflag
             PTYPE="here"
             ;;
           P)
-            _check_bad_longflag
+            check_bad_longflag
             PTYPE="playlist"
             ;;
           s)
@@ -186,11 +191,11 @@ function _check_shortflags() {
             SEARCH_TYPE="f"
             ;;
           h)
-            _show_help
+            show_help
             ;;
           *)                   # If unknown (any other) option:
              echo "Unknown Option."
-             _show_help
+             show_help
             ;;
         esac
     done
@@ -202,7 +207,7 @@ function _check_shortflags() {
 }
 
 
-function _mup_fzy() {
+function mup_fzy() {
 
     ALL_FILES=$($fd -t f $AUDIO_TYPE | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
       # AUDIO_TYPE won't work if quotes;
@@ -215,7 +220,7 @@ function _mup_fzy() {
 
 }
 
-function _mup_fzyd() {
+function mup_fzyd() {
     local DIR_SELECTED
     # DIR_SELECTED=$($fd -t d -d $DEPTH --full-path "."| fzf -m $STYLE)
       # -t d : type directory;
@@ -245,17 +250,17 @@ function _mup_fzyd() {
 
 }
 
-function _mup_all() {
+function mup_all() {
     ALL_FILES=$($fd -t f $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
 
 }
 
-function _mup_here() {
+function mup_here() {
     ALL_FILES=$($fd -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
 
 }
 
-function _mup_playlist() {
+function mup_playlist() {
 
     local PLAYLIST
     local NEW_FILES=''
@@ -305,7 +310,7 @@ function _mup_playlist() {
 }
 
 
-function _mup_play() {
+function mup_play() {
 
     if [[ -z "$ALL_FILES" || "$ALL_FILES" == ' '  ]]; then
         echo "No music files found."
@@ -334,11 +339,11 @@ function _mup_play() {
 FLAGS="$*"
 
 # Check for --flags
-# _check_longflag_playtype "$*"
+# check_longflag_playtype "$*"
 
-_check_longflag_playtype "$FLAGS"
+check_longflag_playtype "$FLAGS"
 
-# _check_shortflags $FLAGS
+# check_shortflags $FLAGS
   # In this instance, passing $FLAGS in quotes doesn't work
   # The downside (or maybe upside) is that it will error if
   # multiple --xxx flags;
@@ -351,28 +356,28 @@ if [[ -n "$PTYPE" ]]; then
     shift
 fi
 
-_check_shortflags $*
+check_shortflags $*
 
 
 if [[ $PTYPE == "all" ]]; then
-  _mup_all
+  mup_all
 
 elif [[ $PTYPE == "here" ]]; then
-  _mup_here
+  mup_here
 
 elif [[ $PTYPE == "fuzzy" ]]; then
   # If file, then run file function;
   if [[ "$SEARCH_TYPE" == "f" ]]; then
-      _mup_fzy
+      mup_fzy
   # if -d, directory, then run directory function;
   else
-      _mup_fzyd
+      mup_fzyd
   fi
 
 elif [[ $PTYPE == "playlist" ]]; then
-  _mup_playlist
+  mup_playlist
 
 fi
 
 # After accumulating song files, play them:
-_mup_play
+mup_play
