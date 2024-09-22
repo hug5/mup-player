@@ -54,9 +54,15 @@ SYNTAX
 
 Kb Shortcuts
   9 / 0 : volume- / volume+
-  [ / ] : speed- / speed+
-  < / > : previous / next
+  [ / ] : 10% speed- / 10% speed+
+  { / } : half speed- / double speed+
+  Enter : Next in playlist
+  left/right arrows : seek backward/forward 5s
+  up/down arrows : seek backward/forward 1s
+  < / > : previous playlist / next playlist
   left/right : backward / forward
+  F8 : show the playlist
+  p or space : pause
   * refer also to MPV kb shortcuts
 
 PLAY COMMANDS

@@ -22,11 +22,17 @@ $ mup --playlist | -P [-s|-n]
 #### Kb Shortcuts
 ```
 9 / 0 : volume- / volume+
-[ / ] : speed- / speed+
-< / > : previous / next
-left / right : backward / forward
-* refer also to MPV kb shortcuts
+[ / ] : 10% speed- / 10% speed+
+{ / } : half speed- / double speed+
+Enter : Next in playlist
+left/right arrows : seek backward/forward 5s
+up/down arrows : seek backward/forward 1s
+< / > : previous playlist / next playlist
+left/right : backward / forward
+F8 : show the playlist
+p or space : pause
 ```
+###### Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control)
 -------------------------------------------------
 
 #### PLAY COMMANDS
