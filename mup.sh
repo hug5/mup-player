@@ -30,10 +30,10 @@ PREV='--preview-window=right:40%:wrap'
 SHUFFLE=true    # Shuffle songs: true/false
 SEARCH_TYPE="f"  # f=file; d=directory; file is default;
 COUNT=0
-ALL_FILES=''
 PTYPE=''
 FLAGS=''
 DEPTH=1
+declare -a ALL_FILES
 
 
 
@@ -315,6 +315,9 @@ function _mup_play() {
     COUNT=$(echo "$ALL_FILES" | wc -l)
 
     if [[ "$SHUFFLE" == true ]]; then
+
+        # ALL_FILES=$(echo "$ALL_FILES" | shuf)  # shuffle; necessary?
+        # Sometimes it seens it doesn't shuffle; or maybe some tracks are very numerous?
         echo "Play $PTYPE. $COUNT songs. Shuffle On."
         echo "$ALL_FILES" | xargs mpv --shuffle $MARG
     else
