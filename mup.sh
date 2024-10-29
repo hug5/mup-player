@@ -82,10 +82,13 @@ FLAG OPTIONS
 EXAMPLES
   $ mup --fuzzy -f      Fuzzy search by song files. (default)
   $ mup                 Same as --fuzzy -f
+  $ mup -d              Fuzzy search by directory
   $ mup --here          Play current folder.
   $ mup --all -s        Play all; shuffle songs.
   $ mup -An             Play all; no shuffle songs.
   $ mup -FdN2           Fuzzy search by directory; depth=2.
+  $ mup -dN2            Same as above, but leave out -F flag;
+
 
 EOF
 exit 0;
@@ -98,7 +101,6 @@ function check_longflag_playtype() {
 
     # case $STR in
     case $FLAGS in
-
 
       "--all "* | "--all")
           PTYPE="all"
@@ -360,6 +362,10 @@ check_longflag_playtype "$FLAGS"
 # Only shift if long flag was used:
 if [[ -n "$PTYPE" ]]; then
     shift
+else
+    # if PTYPE long flag not used, then set PTYPE default to fuzzy;
+    # User can change it with short flag; or leave out and use default;
+    PTYPE="fuzzy"
 fi
 
 check_shortflags $*

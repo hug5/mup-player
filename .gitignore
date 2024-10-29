@@ -1,0 +1,13 @@
+*~
+*.sublime-project
+*.sublime-workspace
+*.bundle
+*xxx
+*XXX
+*XXX*
+*xxx*
+archv
+NOTES
+notes3.txt
+# 03-Configurations/**/\.something
+# 03-Configurations/**/.Something
