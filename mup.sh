@@ -362,13 +362,16 @@ check_longflag_playtype "$FLAGS"
 # Only shift if long flag was used:
 if [[ -n "$PTYPE" ]]; then
     shift
-else
-    # if PTYPE long flag not used, then set PTYPE default to fuzzy;
-    # User can change it with short flag; or leave out and use default;
-    PTYPE="fuzzy"
 fi
 
+
 check_shortflags $*
+
+
+if [[ -z "$PTYPE" ]]; then
+    # if PTYPE long flag not used, then set PTYPE default to fuzzy;
+    PTYPE="fuzzy"
+fi
 
 
 if [[ $PTYPE == "all" ]]; then
