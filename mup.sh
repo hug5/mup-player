@@ -63,6 +63,7 @@ Kb Shortcuts
   left/right : backward / forward
   F8 : show the playlist
   p or space : pause
+  m : mute
   * refer also to MPV kb shortcuts
 
 PLAY COMMANDS

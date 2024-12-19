@@ -31,6 +31,8 @@ up/down arrows : seek backward/forward 1s
 left/right : backward / forward
 F8 : show the playlist
 p or space : pause
+m : mute
+p or space : pause
 ```
 ###### Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control)
 -------------------------------------------------
