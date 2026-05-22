@@ -1,26 +1,26 @@
 # mup.sh
 
-## mup terminal music player
+### mup terminal music player
 
-Play music files in your terminal with mpv.
+#### Play music files in your terminal with mpv.
 
 -------------------------------------------------
 
-#### REQUIREMENTS
+REQUIREMENTS
   - mpv player
   - fzf search
   
   
-#### SYNTAX
-```
+SYNTAX:
+```bash
 $ mup <OPTION> [flag]
 $ mup --fuzzy | -F [-f|-dN] [-s|-n]
 $ mup --all | -A [-s|-n]
 $ mup --here | -H [-s|-n]
 $ mup --playlist | -P [-s|-n]
 ```
-#### Kb Shortcuts
-```
+Kb Shortcuts:
+```bash
 9 / 0 : volume- / volume+
 [ / ] : 10% speed- / 10% speed+
 { / } : half speed- / double speed+
@@ -34,19 +34,21 @@ p or space : pause
 m : mute
 p or space : pause
 ```
-###### Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control)
+
+Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control)
+
 -------------------------------------------------
 
-#### PLAY COMMANDS
-```
+PLAY COMMANDS:
+```bash
 --fuzzy | F       Fuzzy search; use with -d/-f options (default)        
 --all | A         Play everything in current/subdirectories  
 --here | H        Play in current folder         
 --playlist | P    Load m3u playlist(s)                       
 ```
 
-#### FLAG OPTIONS
-```
+FLAG OPTIONS:
+```bash
 -s                Shuffle song list (default)
 -n                Don't shuffle song list
 -f                Fuzzy select song files (default)
@@ -54,8 +56,8 @@ p or space : pause
 -h | --help       Display this help              
 ```
 
-#### EXAMPLES
-```
+EXAMPLES:
+```bash
 $ mup --fuzzy -f      Fuzzy search songs. (default)
 $ mup                 Same as --fuzzy -f 
 $ mup --here          Play current folder.
