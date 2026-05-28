@@ -5,6 +5,7 @@
 # mpv-fzy search for song files and directories
 # Combined the 2 functions: files and directories;
 # // 2024-04-03 : Put all functions here
+# // 2026-05-27 : add video type
 
 #---------------------------------------------------------
 
@@ -19,8 +20,15 @@
 declare fd='fdfind'
 
 declare -i VOL_LEVEL=60
-declare AUDIO_TYPE='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
+declare AUDIO_TYPE_EXT='-e mp3 -e opus -e ogg -e flac -e ape -e mpga -e m4a'
 declare MARG="--audio-display=no --volume=$VOL_LEVEL --loop-playlist --speed=1.0 --af=rubberband=pitch-scale=1.0:pitch=quality:smoothing=on,scaletempo"
+
+declare VIDEO_TYPE_EXT='-e mp4 -e avi -e mkv -e wmv -e flv -e webm -e mov -e asf -e mpg -e mpeg -e ts'
+
+# Will be AUDIO_TYPE_EXT OR VIDEO_TYPE_EXT
+declare MEDIA_TYPE_EXT="$AUDIO_TYPE_EXT"
+
+declare MEDIA_TYPE="A"     # A (audio) or V (video)
 
 # STYLE="--prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%"
 # --border --margin=1 --prompt=: --header=———————————————————————————————— --preview='head -n50 {}' --preview-window=right:40%:noborder:wrap
@@ -30,29 +38,30 @@ declare STYLE="--border --prompt=: --header=————————————
   # No preview of playlist
 declare PREV='--preview-window=right:60%:wrap'
 
-declare SHUFFLE=true      # Shuffle songs: true/false
-declare SEARCH_TYPE="f"   # f=file; d=directory; file is default;
+declare SHUFFLE=false      # Shuffle songs: true/false
+declare SEARCH_TYPE="f"    # f=file; d=directory; file is default;
 declare -i COUNT=0
-declare PTYPE=''          # Play Type: fuzzy, all, here, playlist
+declare PTYPE=''           # Play Type: fuzzy, all, here, playlist
 declare FLAGS=''
 declare -i DEPTH=1
-declare -a ALL_FILES
+# declare -a ALL_FILES
+declare ALL_FILES=''
 
 
 
 function show_help() {
 cat << EOF
-mup terminal music player
+mup terminal media player
 
 SYNOPSIS
-  Play music files with mpv in your terminal
+  Play music files with mpv in your terminal & video files with SMPlayer.
 
 SYNTAX
   $ mup <COMMAND> [OPTION]
-  $ mup --fuzzy | -F [-f|-d] [-N<depth>] [-s|-n]
-  $ mup --all |-A [-s|-n]
-  $ mup --here | -H [-s|-n]
-  $ mup --playlist | -P [-s|-n]
+  $ mup --fuzzy | -F [-d] [-N<depth>] [-s]
+  $ mup --all |-A [-s]
+  $ mup --here | -H [-s]
+  $ mup --playlist | -P [-s]
   $ mup --help | -h
 
 Kb Shortcuts
@@ -76,22 +85,21 @@ PLAY COMMANDS
   --playlist | -P   Load m3u playlist(s).
 
 FLAG OPTIONS
-  -s                Shuffle song list (default).
-  -n                Don't shuffle song list.
-  -f                Fuzzy select song files (default).
-  -d                Fuzzy select directories.
-  -N<depth>         Fuzzy directory depth (default=1).
+  -s                Shuffle media.
+  -v                Video media type.
+  -d                Select by directory.
+  -n D              Directory depth, D (default=1).
   -h | --help       Display this help.
 
 EXAMPLES
-  $ mup --fuzzy -f      Fuzzy search by song files. (default)
-  $ mup                 Same as --fuzzy -f
-  $ mup -d              Fuzzy search by directory
-  $ mup --here          Play current folder.
-  $ mup --all -s        Play all; shuffle songs.
-  $ mup -An             Play all; no shuffle songs.
-  $ mup -FdN2           Fuzzy search by directory; depth=2.
-  $ mup -dN2            Same as above, but leave out -F flag;
+  $ mup --fuzzy         Fuzzy search by files. (default)
+  $ mup                 Same as --fuzzy.
+  $ mup -m a            Search audio files. (default)
+  $ mup -d              Search by directory.
+  $ mup --here          Play all media in current folder.
+  $ mup -A              Play all, including subfolders.
+  $ mup --all -s        Play all, shuffle media.
+  $ mup -Fdn2           Fuzzy search by directory, depth=2.
 
 
 EOF
@@ -166,6 +174,9 @@ function check_shortflags() {
     local LDEPTH
       # When --fuzzy, get directory DEPTH; default=1
 
+    local MTYPE
+      # media type: A or V
+
     # Set variabless:
      # DEPTH
      # SHUFFLE
@@ -177,7 +188,7 @@ function check_shortflags() {
     # no : = does not take argument
     # : at beginning = silent error on unsupported option
     # Below, only N takes argument;
-    while getopts ":dsnfhFAHPN:" LOPTION; do
+    while getopts ":dsnvfhFAHPN:" LOPTION; do
 
         case "$LOPTION" in
 
@@ -200,11 +211,11 @@ function check_shortflags() {
           s)
             SHUFFLE=true
             ;;
+          # n)
+          #   SHUFFLE=false
+          #   # exit
+          #   ;;
           n)
-            SHUFFLE=false
-            # exit
-            ;;
-          N)
             # $OPTARG = switch argument
             LDEPTH="${OPTARG}"
 
@@ -214,12 +225,34 @@ function check_shortflags() {
             # else DEPTH is default 1
             ;;
 
+          v)
+
+            # make user's media_type choice, A or V, to upper
+            # MTYPE=$(printf %s "${OPTARG}" | tr "[:lower:]" "[:upper:]")
+
+            # # Check that it's either V or A
+            # if [[ "$MTYPE" != "V" && "$MTYPE" != "A" ]]; then
+            #     echo "Unknown media type."
+            #     show_help
+            # fi
+            # MEDIA_TYPE="$MTYPE"
+
+            # if [[ "$MTYPE" == "V" ]]; then
+            #     MEDIA_TYPE_EXT="$VIDEO_TYPE_EXT"
+            # else
+            #     MEDIA_TYPE_EXT="$AUDIO_TYPE_EXT"
+            # fi
+
+            MEDIA_TYPE="V"
+            MEDIA_TYPE_EXT="$VIDEO_TYPE_EXT"
+
+            ;;
           d)
             SEARCH_TYPE="d"
             ;;
-          f)
-            SEARCH_TYPE="f"
-            ;;
+          # f)
+          #   SEARCH_TYPE="f"
+          #   ;;
           h)
             show_help
             ;;
@@ -239,8 +272,8 @@ function check_shortflags() {
 
 function mup_fzy() {
 
-    ALL_FILES=$($fd -t f $AUDIO_TYPE | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
-      # AUDIO_TYPE won't work if quotes;
+    ALL_FILES=$($fd -t f $MEDIA_TYPE_EXT | fzf -m $STYLE | sed -e 's/.*/\"&\"/')
+      # MEDIA_TYPE_EXT won't work if quotes;
 
       # fd-find
       # -t f : type files;
@@ -275,9 +308,9 @@ function mup_fzyd() {
     local NEW_FILES=''
     while IFS= read -r line; do
 
-        # NEW_FILES=$($fd -t f $AUDIO_TYPE --full-path "$line" | sed -e 's/.*/\"&\"/')
-        NEW_FILES=$($fd -t f $AUDIO_TYPE . "./$line" | sed -e 's/.*/\"&\"/')
-          # AUDIO_TYPE won't work if quotes;
+        # NEW_FILES=$($fd -t f $MEDIA_TYPE_EXT --full-path "$line" | sed -e 's/.*/\"&\"/')
+        NEW_FILES=$($fd -t f $MEDIA_TYPE_EXT . "./$line" | sed -e 's/.*/\"&\"/')
+          # MEDIA_TYPE_EXT won't work if quotes;
           # See note why I changed the syntax from --full-path to . "./$line"
 
         ALL_FILES+="${NEW_FILES} "
@@ -299,12 +332,17 @@ function mup_fzyd() {
  # & represents the matched string
 
 function mup_all() {
-    ALL_FILES=$($fd -t f $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
+    ALL_FILES=$($fd -t f $MEDIA_TYPE_EXT | sed -e 's/.*/\"&\"/')
 
 }
 
 function mup_here() {
-    ALL_FILES=$($fd -t f -d 1 $AUDIO_TYPE | sed -e 's/.*/\"&\"/')
+
+    ALL_FILES=$($fd -t f -d 1 $MEDIA_TYPE_EXT | sed -e 's/.*/\"&\"/')
+
+    # printf '%s' "$ALL_FILES" > ~/Downloads/mup_temp1.txt
+    # printf '%s\n' "$ALL_FILES" > ~/Downloads/mup_temp1.txt
+      # why is this not printing out the \n in the output?
 
 }
 
@@ -361,7 +399,7 @@ function mup_playlist() {
     # IFS= = internal field separator; in this case, do not delimit by white space;
     # read -r : do not respect escape characters;
     while IFS= read -r line; do
-        NEW_FILES=$(echo "$line" | sed -e 's/.*/\"&\"/')
+        NEW_FILES=$(printf %s "$line" | sed -e 's/.*/\"&\"/')
           # wrap in quotes
         NEW_FILES+=$'\n'
           # add new line character; the $ ensures it's a real newline,
@@ -379,13 +417,26 @@ function mup_playlist() {
         # Since we need a \n, could just use echo as well;
 
 
-    # Remove the last blank line; either of these seem to work;
-    ALL_FILES=$(echo "$ALL_FILES" | grep .)
+    # echo %s "$ALL_FILES"
+    # exit
 
+    # Remove the last blank line; either of these seem to work;
+    # ALL_FILES=$(printf %s "$ALL_FILES" | grep .)
+    # ALL_FILES=$(echo "$ALL_FILES" | grep .)
+      # what is the issue with the last line?
+
+    # printf '%s' $ALL_FILES > ~/Downloads/mup_temp1.txt
+      # why is this not printing out the \n in the output?
 }
 
 
 function mup_play() {
+
+    # playlist load max; for smplayer, the max seems to be
+     # somewhere between 1970 and 1980 files;
+    # Don't think cli mpv has a max? Never had a problem.
+    local MLIMIT=1975
+
 
     if [[ -z "$ALL_FILES" || "$ALL_FILES" == ' '  ]]; then
         echo "No music files found."
@@ -395,17 +446,64 @@ function mup_play() {
     COUNT=$(echo "$ALL_FILES" | wc -l)
       # wc -l : get # of lines
 
-    if [[ "$SHUFFLE" == true ]]; then
+    printf %s "Play $PTYPE. $COUNT media files found. "
 
-        # ALL_FILES=$(echo "$ALL_FILES" | shuf)  # shuffle; necessary?
-        # Sometimes it seens it doesn't shuffle; or maybe some tracks are very numerous?
-        echo "Play $PTYPE. $COUNT songs. Shuffle On."
-        echo "$ALL_FILES" | xargs mpv --shuffle $MARG
-    else
-        echo "Play $PTYPE. $COUNT songs. Shuffle Off."
-        echo "$ALL_FILES" | xargs mpv $MARG
-        # Errors if quote $MARG
+
+    if (( $COUNT > $MLIMIT )); then
+    # if [[ $COUNT -gr $MLIMIT ]]; # Can also do this way;
+        printf %s "Limit $MLIMIT. "
     fi
+
+
+    if [[ "$SHUFFLE" == true ]]; then
+        ALL_FILES=$(printf %s "$ALL_FILES" | shuf -n $MLIMIT)
+        echo "Shuffle On."
+    else
+        ALL_FILES=$(printf %s "$ALL_FILES" | head -n $MLIMIT)
+        echo "Shuffle Off."
+    fi
+
+    if [[ "$MEDIA_TYPE" == "A" ]]; then
+       printf %s "$ALL_FILES" | xargs mpv $MARG
+    else
+       printf %s "$ALL_FILES" | xargs smplayer -actions "pl_repeat true" &>/dev/null & disown
+       echo "Playing..."
+       # the &>/dev/null prevents showing various error message in cli
+       # -add-to-playlist doesn't seem necessary;
+       # AI says '%s' is a good idea; but see no difference;
+       # Also can try '%s\n', but see no difference to add the final newline;
+       # -action "pl_repeast true" : set playlist to repeat or cycle back if at the end;
+       # -actions "pl_shuffle true pl_repeat true"
+       # pl_repeat true  = repeat playlist
+       # repeat true     = repeat current file / repeat mode
+
+    fi
+
+    ####
+      # if [[ "$SHUFFLE" == true ]]; then
+      #     echo "Suffle On."
+      #     # smplayer -help
+
+      #     # ALL_FILES=$(echo "$ALL_FILES" | shuf)  # shuffle; necessary?
+      #     # Sometimes it seens it doesn't shuffle; or maybe some tracks are very numerous?
+      #     # echo "Play $PTYPE. $COUNT songs. Shuffle On."
+      #    echo "$ALL_FILES" | xargs mpv --shuffle $MARG
+      #     # echo "$ALL_FILES" | shuf | xargs smplayer -actions "pl_shuffle true" &>/dev/null & disown
+      #     # echo "$ALL_FILES" | shuf -n 1500 | xargs smplayer -actions "pl_shuffle true" &>/dev/null & disown
+
+      #    # echo "$ALL_FILES" | shuf -n 1980 | xargs smplayer &>/dev/null & disown
+      #     # somewhere between 1980 and 1990 seems to be the limit for the playlist;
+      #     # Forward and back doesn't go to the same file; it's always something random;
+
+      #     # mapfile -t files < <(printf '%s' "$ALL_FILES" | shuf | head -n20)
+      #     # # setsid -f smplayer -actions "pl_shuffle true" "${files[@]}" >/dev/null 2>&1
+      #     # smplayer -actions "pl_shuffle true" "${files[@]}" >/dev/null 2>&1
+      # else
+      #     echo "Suffle Off."
+      #     # echo "Play $PTYPE. $COUNT songs. Shuffle Off."
+      #     echo "$ALL_FILES" | xargs mpv $MARG
+      #     # Errors if quote $MARG
+      # fi
 
 
 }

@@ -1,26 +1,28 @@
 # mup.sh
 
-### mup terminal music player
+### mup terminal media player
 
 #### Play music files in your terminal with mpv.
+#### Play video files from your terminal with SMPlayer.
 
 -------------------------------------------------
 
 REQUIREMENTS
-  - mpv player
+  - mpv player (for audio)
+  - SMPlayer (for video)
   - fzf search
   
   
 SYNTAX:
 ```bash
-$ mup <OPTION> [flag]
-$ mup --fuzzy | -F [-f|-dN] [-s|-n]
-$ mup --all | -A [-s|-n]
-$ mup --here | -H [-s|-n]
-$ mup --playlist | -P [-s|-n]
-```
-Kb Shortcuts:
-```bash
+$ mup <COMMAND> [OPTION]
+$ mup --fuzzy | -F [-d] [-N<depth>] [-s]
+$ mup --all |-A [-s]
+$ mup --here | -H [-s]
+$ mup --playlist | -P [-s]
+$ mup --help | -h
+
+Kb Shortcuts
 9 / 0 : volume- / volume+
 [ / ] : 10% speed- / 10% speed+
 { / } : half speed- / double speed+
@@ -32,7 +34,6 @@ left/right : backward / forward
 F8 : show the playlist
 p or space : pause
 m : mute
-p or space : pause
 ```
 
 Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control)
@@ -41,28 +42,28 @@ Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control
 
 PLAY COMMANDS:
 ```bash
---fuzzy | F       Fuzzy search; use with -d/-f options (default)        
---all | A         Play everything in current/subdirectories  
---here | H        Play in current folder         
---playlist | P    Load m3u playlist(s)                       
+--fuzzy | -F      Fuzzy search; use with -d/-f flags. (default)
+--all | -A        Play everything in current/subdirectories.
+--here | -H       Play in current folder.
+--playlist | -P   Load m3u playlist(s).
+
+FLAG OPTIONS
+-s                Shuffle media.
+-v                Video media type.
+-d                Select by directory.
+-n D              Directory depth, D (default=1).
+-h | --help       Display this help.
+
+EXAMPLES
+$ mup --fuzzy         Fuzzy search by files. (default)
+$ mup                 Same as --fuzzy.
+$ mup -m a            Search audio files. (default)
+$ mup -d              Search by directory.
+$ mup --here          Play all media in current folder.
+$ mup -A              Play all, including subfolders.
+$ mup --all -s        Play all, shuffle media.
+$ mup -Fdn2           Fuzzy search by directory, depth=2.
 ```
 
-FLAG OPTIONS:
-```bash
--s                Shuffle song list (default)
--n                Don't shuffle song list
--f                Fuzzy select song files (default)
--dN               Fuzzy select directories; N=depth
--h | --help       Display this help              
-```
 
-EXAMPLES:
-```bash
-$ mup --fuzzy -f      Fuzzy search songs. (default)
-$ mup                 Same as --fuzzy -f 
-$ mup --here          Play current folder.
-$ mup --all -s        Play all; shuffle songs.
-$ mup -An             Play all; no shuffle songs.
-$ mup -FdN2           Fuzzy search by directory; depth=2.
 
-```
