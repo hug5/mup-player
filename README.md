@@ -42,8 +42,8 @@ Also refer to [MPV kb shortcuts.](https://mpv.io/manual/master/#keyboard-control
 
 PLAY COMMANDS:
 ```bash
---fuzzy | -F      Fuzzy search; use with -d/-f flags. (default)
---all | -A        Play everything in current/subdirectories.
+--fuzzy | -F      Fuzzy search. (default)
+--all | -A        Play everything in current + subfolders.
 --here | -H       Play in current folder.
 --playlist | -P   Load m3u playlist(s).
 
@@ -55,14 +55,15 @@ FLAG OPTIONS
 -h | --help       Display this help.
 
 EXAMPLES
-$ mup --fuzzy         Fuzzy search by files. (default)
+$ mup --fuzzy         Fuzzy search by audio files. (default)
 $ mup                 Same as --fuzzy.
-$ mup -m a            Search audio files. (default)
-$ mup -d              Search by directory.
-$ mup --here          Play all media in current folder.
-$ mup -A              Play all, including subfolders.
-$ mup --all -s        Play all, shuffle media.
+$ mup -d              Fuzzy search by directory.
+$ mup --here          Play all audio media in current folder.
+$ mup -A              Play all audio, including subfolders.
+$ mup --all -s        Play all audio; shuffle.
+$ mup -vsA            Play all video, including subfolder; shuffle.
 $ mup -Fdn2           Fuzzy search by directory, depth=2.
+
 ```
 
 

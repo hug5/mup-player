@@ -79,8 +79,8 @@ Kb Shortcuts
   * refer also to MPV kb shortcuts
 
 PLAY COMMANDS
-  --fuzzy | -F      Fuzzy search; use with -d/-f flags. (default)
-  --all | -A        Play everything in current/subdirectories.
+  --fuzzy | -F      Fuzzy search. (default)
+  --all | -A        Play everything in current + subfolders.
   --here | -H       Play in current folder.
   --playlist | -P   Load m3u playlist(s).
 
@@ -92,13 +92,13 @@ FLAG OPTIONS
   -h | --help       Display this help.
 
 EXAMPLES
-  $ mup --fuzzy         Fuzzy search by files. (default)
+  $ mup --fuzzy         Fuzzy search by audio files. (default)
   $ mup                 Same as --fuzzy.
-  $ mup -m a            Search audio files. (default)
-  $ mup -d              Search by directory.
-  $ mup --here          Play all media in current folder.
-  $ mup -A              Play all, including subfolders.
-  $ mup --all -s        Play all, shuffle media.
+  $ mup -d              Fuzzy search by directory.
+  $ mup --here          Play all audio media in current folder.
+  $ mup -A              Play all audio, including subfolders.
+  $ mup --all -s        Play all audio; shuffle.
+  $ mup -vsA            Play all video, including subfolder; shuffle.
   $ mup -Fdn2           Fuzzy search by directory, depth=2.
 
 
@@ -293,7 +293,7 @@ function mup_fzyd() {
     # DIR_SELECTED=$($fd -t d -d $DEPTH --full-path "."| fzf -m $STYLE)
       # -t d : type directory;
       # -d $DEPTH : depth of directory;
-    DIR_SELECTED=$($fd -td -d $DEPTH --full-path "." | fzf -m $STYLE "$PREV" --preview="$fd  . -tf -d99 {}")
+    DIR_SELECTED=$($fd -td -d $DEPTH --full-path "." | fzf -m $STYLE "$PREV" --preview="$fd  . -tf -d99 $MEDIA_TYPE_EXT {}")
       # Added preview option; preview the files in the directory;
       # Going depth 99; the parent folder may have no music files;
       # Now if I can remove the directory and show the file name only;
